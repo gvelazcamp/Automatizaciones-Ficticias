@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correo — Logi Stock</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+  --navy:#122A43; --blue:#2D6AA0; --blue2:#1B4A73; --cyan:#3FA9D6; --green:#2AA876;
+  --red:#D9534F; --amber:#E0A030; --ink:#1B2A3A; --sub:#63758A;
+  --paper:#F4F7FA; --paper2:#EAEFF4; --line:#D9E1EA;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Inter,Arial,sans-serif;background:var(--paper);color:var(--ink);font-size:14px;height:100vh;overflow:hidden;}
+.mono{font-family:'Consolas','JetBrains Mono',monospace;}
+
+/* ===== topbar ===== */
+.topbar{height:52px;background:var(--navy);display:flex;align-items:center;padding:0 18px;gap:14px;color:#fff;flex-shrink:0;}
+.topbar .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15.5px;}
+.topbar .brand i{color:var(--cyan);}
+.topbar .search{flex:1;max-width:520px;margin-left:20px;position:relative;}
+.topbar .search input{width:100%;padding:8px 14px 8px 34px;border-radius:20px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:13px;}
+.topbar .search input::placeholder{color:#A9BCD0;}
+.topbar .search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A9BCD0;font-size:12px;}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+.topbar .user{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#DCE7F2;}
+.topbar .user .av{width:26px;height:26px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--navy);}
+
+/* ===== layout ===== */
+.app{display:flex;height:calc(100vh - 52px);}
+
+/* ===== sidebar ===== */
+.sidebar{width:230px;background:#fff;border-right:1px solid var(--line);flex-shrink:0;padding:16px 12px;display:flex;flex-direction:column;}
+.compose-btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:9px;cursor:pointer;box-shadow:0 2px 6px rgba(45,106,160,.3);margin-bottom:18px;}
+.compose-btn:hover{background:var(--blue2);}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:7px;font-size:13px;color:var(--ink);cursor:pointer;margin-bottom:2px;}
+.nav-item i{width:16px;text-align:center;color:var(--sub);font-size:13px;}
+.nav-item:hover{background:var(--paper2);}
+.nav-item.active{background:#E5EFF8;color:var(--blue);font-weight:700;}
+.nav-item.active i{color:var(--blue);}
+.nav-item .count{margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:var(--blue);border-radius:10px;padding:1px 7px;}
+.nav-item.active .count{background:var(--blue);}
+.nav-sep{height:1px;background:var(--line);margin:12px 4px;}
+.sidebar-foot{margin-top:auto;font-size:11px;color:var(--sub);padding:10px 6px;line-height:1.5;}
+
+/* ===== mail list ===== */
+.mail-list-col{width:360px;border-right:1px solid var(--line);background:#fff;display:flex;flex-direction:column;flex-shrink:0;}
+.list-head{padding:14px 18px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.list-head h2{font-size:16px;font-weight:700;}
+.list-head span{font-size:11.5px;color:var(--sub);}
+.mail-list{overflow-y:auto;flex:1;}
+.mail-item{padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer;position:relative;transition:background .1s;}
+.mail-item:hover{background:var(--paper);}
+.mail-item.selected{background:#E5EFF8;}
+.mail-item.selected::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue);}
+.mail-item .row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:3px;}
+.mail-item .from{font-size:13px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mail-item.unread .from{font-weight:700;}
+.mail-item .date{font-size:10.5px;color:var(--sub);white-space:nowrap;flex-shrink:0;}
+.mail-item .subj{font-size:12.5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
+.mail-item.unread .subj{font-weight:700;}
+.mail-item .snippet{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mail-item .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin-right:6px;flex-shrink:0;}
+.mail-item .tag{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:1px 6px;border-radius:3px;margin-top:5px;}
+.tag-orden{background:#E5EFF8;color:var(--blue);}
+.tag-factura{background:#FCEFD9;color:#9A6A0A;}
+.tag-sistema{background:#EAEFF4;color:var(--sub);}
+
+/* ===== detail pane ===== */
+.detail-col{flex:1;display:flex;flex-direction:column;background:#fff;overflow-y:auto;}
+.detail-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--sub);gap:12px;}
+.detail-empty i{font-size:52px;color:var(--line);}
+.detail-empty span{font-size:13px;}
+.detail-head{padding:26px 34px 18px;border-bottom:1px solid var(--line);}
+.detail-head h1{font-size:19px;font-weight:700;color:var(--navy);margin-bottom:14px;line-height:1.35;}
+.detail-meta{display:flex;gap:12px;align-items:flex-start;}
+.detail-meta .av{width:38px;height:38px;border-radius:50%;background:var(--blue2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+.detail-meta-text{font-size:12.5px;line-height:1.7;}
+.detail-meta-text b{color:var(--ink);font-weight:600;}
+.detail-meta-text .addr{color:var(--sub);}
+.detail-meta-date{margin-left:auto;font-size:11.5px;color:var(--sub);white-space:nowrap;}
+.detail-body{padding:26px 34px;font-size:13.5px;line-height:1.75;white-space:pre-wrap;flex:1;}
+.detail-attach{margin:0 34px 10px;padding:12px 16px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;gap:12px;background:var(--paper);cursor:pointer;max-width:340px;}
+.detail-attach:hover{border-color:var(--blue);background:#E5EFF8;}
+.detail-attach i{font-size:20px;}
+.detail-attach i.pdf{color:var(--red);}
+.detail-attach i.xlsx{color:var(--green);}
+.detail-attach i.xml{color:var(--sub);}
+.detail-attach .name{font-size:12.5px;font-weight:600;color:var(--ink);}
+.detail-attach .size{font-size:10.5px;color:var(--sub);}
+.detail-attach-wrap{padding-top:6px;margin-bottom:20px;}
+.mail-item .clip{color:var(--sub);font-size:10.5px;margin-left:6px;}
+.detail-actions{padding:16px 34px;border-top:1px solid var(--line);display:flex;gap:10px;}
+.dbtn{border:1px solid var(--line);background:#fff;padding:8px 16px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:7px;}
+.dbtn:hover{background:var(--paper2);}
+.dbtn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.dbtn.primary:hover{background:var(--blue2);}
+
+/* ===== compose modal ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(18,42,67,.5);display:none;align-items:flex-end;justify-content:flex-end;z-index:200;padding:20px;}
+.modal-overlay.show{display:flex;}
+.compose-box{width:520px;max-width:100%;background:#fff;border-radius:10px 10px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.25);overflow:hidden;}
+.compose-title{background:var(--navy);color:#fff;padding:12px 16px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.compose-title i{cursor:pointer;opacity:.8;}
+.compose-title i:hover{opacity:1;}
+.compose-fields{padding:12px 16px;}
+.compose-fields input{width:100%;border:none;border-bottom:1px solid var(--line);padding:9px 2px;font-size:13px;margin-bottom:2px;}
+.compose-fields input:focus{outline:none;border-bottom-color:var(--blue);}
+.compose-fields textarea{width:100%;border:none;padding:12px 2px;font-size:13px;resize:none;height:180px;font-family:inherit;}
+.compose-fields textarea:focus{outline:none;}
+.compose-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.send-btn{background:var(--blue);color:#fff;border:none;padding:9px 22px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;}
+.send-btn:hover{background:var(--blue2);}
+
+/* ===== toast ===== */
+#toastWrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{background:var(--navy);color:#fff;padding:10px 20px;border-radius:20px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+
+@media (max-width:900px){
+  .sidebar{display:none;}
+  .mail-list-col{width:100%;}
+  .detail-col{display:none;}
+  .mail-list-col.hide-mobile{display:none;}
+  .detail-col.show-mobile{display:flex;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><i class="fa-solid fa-boxes-stacked"></i> Logi Stock</div>
+  <div class="search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="buscador" placeholder="Buscar en el correo..." oninput="renderLista()"></div>
+  <div class="right">
+    <div class="user"><div class="av" id="avatarUsuario">JA</div><span id="nombreUsuario">J. Álvarez</span></div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="sidebar">
+    <button class="compose-btn" onclick="abrirRedactar()"><i class="fa-solid fa-pen"></i> Redactar</button>
+    <div class="nav-item active" id="navRecibidos" onclick="cambiarCarpeta('recibidos')">
+      <i class="fa-solid fa-inbox"></i> Recibidos <span class="count" id="countRecibidos">0</span>
+    </div>
+    <div class="nav-item" id="navEnviados" onclick="cambiarCarpeta('enviados')">
+      <i class="fa-solid fa-paper-plane"></i> Enviados
+    </div>
+    <div class="nav-item" id="navTodos" onclick="cambiarCarpeta('todos')">
+      <i class="fa-solid fa-envelope"></i> Todos
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" id="navOrdenes" onclick="cambiarCarpeta('ordenes')">
+      <i class="fa-solid fa-cart-shopping"></i> Órdenes de compra
+    </div>
+    <div class="nav-item" id="navProveedores" onclick="cambiarCarpeta('proveedores')">
+      <i class="fa-solid fa-truck-field"></i> Proveedores
+    </div>
+    <div class="sidebar-foot">
+      Ambiente de práctica — correos y datos ficticios, sin conexión real.
+    </div>
+  </aside>
+
+  <div class="mail-list-col" id="listCol">
+    <div class="list-head">
+      <h2 id="tituloLista">Recibidos</h2>
+      <span id="contadorLista">0 mensajes</span>
+    </div>
+    <div class="mail-list" id="mailLista"></div>
+  </div>
+
+  <div class="detail-col" id="detailCol">
+    <div class="detail-empty" id="detailEmpty">
+      <i class="fa-regular fa-envelope-open"></i>
+      <span>Seleccioná un correo para leerlo</span>
+    </div>
+    <div id="detailContent" style="display:none"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="composeOverlay">
+  <div class="compose-box">
+    <div class="compose-title">
+      <span>Mensaje nuevo</span>
+      <i class="fa-solid fa-xmark" onclick="cerrarRedactar()"></i>
+    </div>
+    <div class="compose-fields">
+      <input type="text" id="composePara" placeholder="Para">
+      <input type="text" id="composeAsunto" placeholder="Asunto">
+      <textarea id="composeCuerpo" placeholder="Escribí tu mensaje..."></textarea>
+    </div>
+    <div class="compose-foot">
+      <button class="send-btn" onclick="enviarRedactado()"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+      <span style="font-size:11px;color:var(--sub)">Simulación — no se envía realmente</span>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<script>
+/* =========================================================
+   DATOS FICTICIOS
+   ========================================================= */
+const USUARIO = { nombre:"J. Álvarez", email:"jalvarez@logistock.uy", iniciales:"JA" };
+
+const EMAILS = [
+  {id:1, folder:"recibidos", de:"MedSupply Rioplatense", deMail:"ventas@medsupplyrp.uy", para:USUARIO.email, asunto:"RE: Orden de Compra N° 1044", fecha:"2026-07-29 15:40", cuerpo:"Buenas tardes,\n\nConfirmamos recepción de su orden de compra. Entrega estimada en 3 a 5 días hábiles a su depósito de siempre.\n\nAdjuntamos el remito correspondiente.\n\nCualquier consulta quedamos a disposición.\n\nSaludos cordiales,\nEquipo Comercial\nMedSupply Rioplatense", leido:true, tag:"orden", adjuntos:[{name:"Remito_R-4471.pdf", type:"pdf", size:"142 KB"}]},
+  {id:2, folder:"recibidos", de:"Vidrioteca S.A.", deMail:"pedidos@insumosdelcono.uy", para:USUARIO.email, asunto:"RE: Orden de Compra N° 1051", fecha:"2026-08-04 14:22", cuerpo:"Hola,\n\nRecibimos su pedido, ya está en preparación. Les avisamos apenas esté lista para el despacho.\n\nAdjuntamos la confirmación de pedido.\n\nSaludos,\nVidrioteca S.A.", leido:false, tag:"orden", adjuntos:[{name:"Confirmacion_Pedido_8821.pdf", type:"pdf", size:"98 KB"}]},
+  {id:3, folder:"recibidos", de:"Antabel S.A", deMail:"facturacion@antabel.com.uy", para:USUARIO.email, asunto:"eFactura - Nuevo CFE emitido e-Fac N° 3-125668", fecha:"2026-07-23 11:18", cuerpo:"Estimados,\n\nSe ha emitido el siguiente comprobante fiscal electrónico:\n\nTipo: e-Factura de Contado\nSerie: A  N°: 125668\nFecha: 23/07/2026\nMonto Total: $ 45.018\n\nEl comprobante y su representación impresa se encuentran adjuntos a este correo.\n\nEste es un mensaje automático, por favor no responder.\n\nAntabel S.A", leido:false, tag:"factura", adjuntos:[{name:"eFactura_A125668.pdf", type:"pdf", size:"76 KB"},{name:"CFE_A125668.xml", type:"xml", size:"12 KB"}]},
+  {id:4, folder:"recibidos", de:"Química Industrial SRL", deMail:"ventas@quimicaindustrial.com.uy", para:USUARIO.email, asunto:"Lista de precios actualizada — Agosto 2026", fecha:"2026-08-01 08:30", cuerpo:"Estimados clientes,\n\nLes informamos que a partir del 15/08 se actualizarán los precios de nuestra línea de descartables e insumos generales en un 4%, producto del ajuste de costos de importación.\n\nAdjuntamos la lista de precios actualizada en formato Excel.\n\nSaludos,\nQuímica Industrial SRL", leido:true, tag:"sistema", adjuntos:[{name:"Lista_Precios_Agosto2026.xlsx", type:"xlsx", size:"318 KB"}]},
+  {id:5, folder:"recibidos", de:"Logi Stock — Notificaciones", deMail:"sistema@logistock.uy", para:USUARIO.email, asunto:"3 artículos bajo stock mínimo", fecha:"2026-08-11 07:00", cuerpo:"Aviso automático del sistema:\n\nSe detectaron 3 artículos por debajo del stock mínimo configurado:\n\n- RC-2824 — Reactivo LabQuímica LQ-204 (61/65 un.)\n- DS-9689 — Jeringa 3ml descartable (0/265 un.)\n- LM-8491 — Guantes de nitrilo M (43/80 un.)\n\nIngresá a Stock mínimo para ver el detalle y generar las solicitudes de compra correspondientes.", leido:false, tag:"sistema", adjuntos:[]},
+  {id:6, folder:"recibidos", de:"ImmunoDx Uruguay", deMail:"comercial@immunodx.uy", para:USUARIO.email, asunto:"Confirmación de entrega — Remito N° 6602", fecha:"2026-07-24 09:15", cuerpo:"Buen día,\n\nLes confirmamos que la mercadería fue despachada hoy y llegará a su depósito dentro de las próximas 24-48 horas.\n\nAdjuntamos el remito para su control.\n\nSaludos,\nImmunoDx Uruguay", leido:true, tag:"factura", adjuntos:[{name:"Remito_6602.pdf", type:"pdf", size:"110 KB"}]},
+  {id:7, folder:"recibidos", de:"BioNova Diagnóstica", deMail:"ventas@bionova-dx.com", para:USUARIO.email, asunto:"Nota de Crédito NC-000119 — CFE emitido", fecha:"2026-08-02 16:05", cuerpo:"Estimados,\n\nLes confirmamos la emisión de la nota de crédito por la devolución de mercadería acordada telefónicamente el día de ayer.\n\nSe adjunta el comprobante fiscal electrónico.\n\nSaludos,\nBioNova Diagnóstica", leido:true, tag:"factura", adjuntos:[{name:"NC_000119.pdf", type:"pdf", size:"68 KB"}]},
+  {id:8, folder:"enviados", de:USUARIO.nombre, deMail:USUARIO.email, para:"ventas@medsupplyrp.uy", asunto:"Orden de Compra N° 1044", fecha:"2026-07-29 10:12", cuerpo:"Estimados,\n\nAdjuntamos la orden de compra para su procesamiento. Quedamos atentos a la confirmación y fecha estimada de entrega.\n\nSaludos,\nJ. Álvarez\nDepto. de Compras — Fertilab", leido:true, tag:"orden", adjuntos:[{name:"Orden_Compra_1044.pdf", type:"pdf", size:"91 KB"}]},
+  {id:9, folder:"enviados", de:"L. Giménez", deMail:"lgimenez@logistock.uy", para:"pedidos@insumosdelcono.uy", asunto:"Orden de Compra N° 1051", fecha:"2026-08-04 09:05", cuerpo:"Estimados,\n\nAdjuntamos la orden de compra para su procesamiento.\n\nSaludos,\nL. Giménez\nDepto. de Compras", leido:true, tag:"orden", adjuntos:[{name:"Orden_Compra_1051.pdf", type:"pdf", size:"87 KB"}]},
+  {id:10, folder:"enviados", de:"C. Fernández", deMail:"cfernandez@logistock.uy", para:"comercial@immunodx.uy", asunto:"Consulta stock disponible — Insulin Elecsys E2G", fecha:"2026-08-06 11:40", cuerpo:"Hola,\n\n¿Podrían confirmarnos disponibilidad y plazo de entrega para 50 unidades de Insulin Elecsys E2G? Necesitamos reponer stock antes de fin de mes.\n\nQuedo atenta a su respuesta.\n\nSaludos,\nC. Fernández", leido:true, tag:"sistema", adjuntos:[]},
+  {id:11, folder:"enviados", de:"M. Bentancor", deMail:"mbentancor@logistock.uy", para:"facturacion@antabel.com.uy", asunto:"RE: eFactura - Nuevo CFE emitido e-Fac N° 3-125668", fecha:"2026-07-23 13:02", cuerpo:"Buenas tardes,\n\nGracias por el aviso, ya descargamos el comprobante. Quedamos a la espera de la mercadería.\n\nSaludos,\nM. Bentancor", leido:true, tag:"factura", adjuntos:[]},
+  {id:12, folder:"recibidos", de:"CleanLab Insumos", deMail:"contacto@cleanlab.uy", para:USUARIO.email, asunto:"Catálogo de productos 2026", fecha:"2026-07-18 10:00", cuerpo:"Estimados,\n\nLes compartimos nuestro catálogo con la línea completa de productos de limpieza y desinfección para laboratorios.\n\nAnte cualquier consulta o pedido de cotización, contáctenos.\n\nSaludos cordiales,\nCleanLab Insumos", leido:true, tag:"sistema", adjuntos:[{name:"Catalogo_CleanLab_2026.pdf", type:"pdf", size:"2.4 MB"}]},
+  {id:13, folder:"recibidos", de:"BioAndina Insumos", deMail:"stock@bioandina.uy", para:USUARIO.email, asunto:"Pedido Vitalcor", fecha:"2026-08-05 09:02", cuerpo:"Estimados,\n\nAdjuntamos Pedido Vitalcor.\n\nSaludos,\nBioAndina Insumos", leido:false, tag:"sistema", adjuntos:[{name:"VITALCOR.xlsx", type:"xlsx", size:"44 KB"}]},
+  {id:14, folder:"recibidos", de:"BioAndina Insumos", deMail:"stock@bioandina.uy", para:USUARIO.email, asunto:"Pedido Plasmex", fecha:"2026-08-05 09:04", cuerpo:"Estimados,\n\nAdjuntamos Pedido Plasmex.\n\nSaludos,\nBioAndina Insumos", leido:false, tag:"sistema", adjuntos:[{name:"PLASMEX.xlsx", type:"xlsx", size:"38 KB"}]},
+  {id:15, folder:"recibidos", de:"BioAndina Insumos", deMail:"stock@bioandina.uy", para:USUARIO.email, asunto:"Pedido Hemtec", fecha:"2026-08-05 09:07", cuerpo:"Estimados,\n\nAdjuntamos Pedido Hemtec.\n\nSaludos,\nBioAndina Insumos", leido:false, tag:"sistema", adjuntos:[{name:"HEMTEC.xlsx", type:"xlsx", size:"41 KB"}]},
+  {id:16, folder:"recibidos", de:"BioAndina Insumos", deMail:"stock@bioandina.uy", para:USUARIO.email, asunto:"Pedido Biofert", fecha:"2026-08-05 09:09", cuerpo:"Estimados,\n\nAdjuntamos Pedido Biofert.\n\nSaludos,\nBioAndina Insumos", leido:false, tag:"sistema", adjuntos:[{name:"BIOFERT.xlsx", type:"xlsx", size:"36 KB"}]},
+  {id:17, folder:"recibidos", de:"Distribuidora Sanitaria del Este", deMail:"ventas@disaneste.uy", para:USUARIO.email, asunto:"eFactura - Nuevo CFE emitido e-Fac N° 1-088341", fecha:"2026-07-30 14:50", cuerpo:"Estimados,\n\nSe ha emitido el siguiente comprobante fiscal electrónico:\n\nTipo: e-Factura de Crédito\nSerie: A  N°: 088341\nFecha: 30/07/2026\nMonto Total: $ 6.600\n\nEl comprobante se encuentra adjunto a este correo.\n\nEste es un mensaje automático, por favor no responder.\n\nDistribuidora Sanitaria del Este", leido:false, tag:"factura", adjuntos:[{name:"eFactura_A088341.pdf", type:"pdf", size:"71 KB"}]},
+];
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+let carpetaActual = "recibidos";
+let seleccionadoId = null;
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function iniciales(nombre){
+  const partes = nombre.trim().split(/\s+/);
+  return ((partes[0]?.[0]||'') + (partes[1]?.[0]||partes[0]?.[1]||'')).toUpperCase();
+}
+function fmtFechaCorta(fechaHora){
+  const [fecha] = fechaHora.split(' ');
+  const [y,m,d] = fecha.split('-');
+  const hoy = '2026-08-11';
+  if(fecha===hoy) return fechaHora.split(' ')[1];
+  return `${d}/${m}`;
+}
+function fmtFechaLarga(fechaHora){
+  const [fecha,hora] = fechaHora.split(' ');
+  const [y,m,d] = fecha.split('-');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d} ${meses[Number(m)-1]} ${y}, ${hora}`;
+}
+function toast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=> el.remove(), 2800);
+}
+
+/* =========================================================
+   NAVEGACION
+   ========================================================= */
+function cambiarCarpeta(carpeta){
+  carpetaActual = carpeta;
+  seleccionadoId = null;
+  document.querySelectorAll('.nav-item').forEach(el=> el.classList.remove('active'));
+  const map = {recibidos:'navRecibidos', enviados:'navEnviados', todos:'navTodos', ordenes:'navOrdenes', proveedores:'navProveedores'};
+  document.getElementById(map[carpeta]).classList.add('active');
+  const titulos = {recibidos:'Recibidos', enviados:'Enviados', todos:'Todos los mensajes', ordenes:'Órdenes de compra', proveedores:'Proveedores'};
+  document.getElementById('tituloLista').textContent = titulos[carpeta];
+  renderLista();
+  mostrarVacio();
+}
+
+function filtrarEmails(){
+  const q = (document.getElementById('buscador').value||'').toLowerCase();
+  let lista = EMAILS.slice();
+  if(carpetaActual==='recibidos') lista = lista.filter(e=> e.folder==='recibidos');
+  else if(carpetaActual==='enviados') lista = lista.filter(e=> e.folder==='enviados');
+  else if(carpetaActual==='ordenes') lista = lista.filter(e=> e.tag==='orden');
+  else if(carpetaActual==='proveedores') lista = lista.filter(e=> e.tag==='factura' || e.tag==='orden');
+  if(q) lista = lista.filter(e=> e.asunto.toLowerCase().includes(q) || e.de.toLowerCase().includes(q) || e.cuerpo.toLowerCase().includes(q));
+  return lista.sort((a,b)=> b.fecha.localeCompare(a.fecha));
+}
+
+/* =========================================================
+   RENDER LISTA
+   ========================================================= */
+function renderLista(){
+  const lista = filtrarEmails();
+  const cont = document.getElementById('mailLista');
+  document.getElementById('contadorLista').textContent = `${lista.length} mensaje${lista.length===1?'':'s'}`;
+  document.getElementById('countRecibidos').textContent = EMAILS.filter(e=> e.folder==='recibidos' && !e.leido).length;
+
+  if(!lista.length){
+    cont.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--sub);font-size:12.5px"><i class="fa-regular fa-face-smile" style="font-size:28px;display:block;margin-bottom:10px;color:var(--line)"></i>No hay mensajes acá.</div>`;
+    return;
+  }
+
+  cont.innerHTML = lista.map(e=>{
+    const otro = e.folder==='recibidos' ? e.de : `Para: ${e.para}`;
+    const snippet = e.cuerpo.split('\n').find(l=>l.trim()) || '';
+    const tagLabel = {orden:'Orden', factura:'Factura', sistema:'Sistema'}[e.tag] || '';
+    const tagClass = {orden:'tag-orden', factura:'tag-factura', sistema:'tag-sistema'}[e.tag] || '';
+    return `<div class="mail-item ${!e.leido && e.folder==='recibidos' ? 'unread':''} ${seleccionadoId===e.id?'selected':''}" onclick="abrirEmail(${e.id})">
+      <div class="row1">
+        <span class="from">${!e.leido && e.folder==='recibidos' ? '<span class="dot"></span>':''}${otro}${e.adjuntos && e.adjuntos.length ? '<i class="fa-solid fa-paperclip clip"></i>' : ''}</span>
+        <span class="date">${fmtFechaCorta(e.fecha)}</span>
+      </div>
+      <div class="subj">${e.asunto}</div>
+      <div class="snippet">${snippet}</div>
+      ${tagLabel ? `<span class="tag ${tagClass}">${tagLabel}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* =========================================================
+   RENDER DETALLE
+   ========================================================= */
+function abrirEmail(id){
+  const email = EMAILS.find(e=> e.id===id);
+  if(!email) return;
+  email.leido = true;
+  seleccionadoId = id;
+  renderLista();
+
+  document.getElementById('detailEmpty').style.display = 'none';
+  const detalle = document.getElementById('detailContent');
+  detalle.style.display = 'flex';
+  detalle.style.flexDirection = 'column';
+  detalle.style.height = '100%';
+
+  detalle.innerHTML = `
+    <div class="detail-head">
+      <h1>${email.asunto}</h1>
+      <div class="detail-meta">
+        <div class="av">${iniciales(email.de)}</div>
+        <div class="detail-meta-text">
+          <div><b>${email.de}</b> <span class="addr">&lt;${email.deMail}&gt;</span></div>
+          <div class="addr">Para: ${email.para}</div>
+        </div>
+        <div class="detail-meta-date">${fmtFechaLarga(email.fecha)}</div>
+      </div>
+    </div>
+    <div class="detail-body">${email.cuerpo}</div>
+    ${email.adjuntos && email.adjuntos.length ? `<div class="detail-attach-wrap">${email.adjuntos.map(adj=>{
+      const iconos = {pdf:'fa-file-pdf', xlsx:'fa-file-excel', xls:'fa-file-excel', xml:'fa-file-code'};
+      const icono = iconos[adj.type] || 'fa-file';
+      return `<div class="detail-attach" onclick="toast('Simulación — no hay archivo real para abrir')">
+        <i class="fa-solid ${icono} ${adj.type}"></i>
+        <div><div class="name">${adj.name}</div><div class="size">${adj.type.toUpperCase()} · ${adj.size}</div></div>
+      </div>`;
+    }).join('')}</div>` : ''}
+    <div class="detail-actions">
+      <button class="dbtn primary" onclick="abrirRedactar('${email.deMail}', 'RE: ${email.asunto.replace(/'/g,"\\'")}')"><i class="fa-solid fa-reply"></i> Responder</button>
+      <button class="dbtn" onclick="toast('Correo reenviado (simulación)')"><i class="fa-solid fa-share"></i> Reenviar</button>
+      <button class="dbtn" onclick="toast('Correo archivado (simulación)')"><i class="fa-solid fa-box-archive"></i> Archivar</button>
+    </div>
+  `;
+}
+
+function mostrarVacio(){
+  document.getElementById('detailEmpty').style.display = 'flex';
+  document.getElementById('detailContent').style.display = 'none';
+}
+
+/* =========================================================
+   REDACTAR (simulado)
+   ========================================================= */
+function abrirRedactar(para, asunto){
+  document.getElementById('composePara').value = para || '';
+  document.getElementById('composeAsunto').value = asunto || '';
+  document.getElementById('composeCuerpo').value = '';
+  document.getElementById('composeOverlay').classList.add('show');
+}
+function cerrarRedactar(){
+  document.getElementById('composeOverlay').classList.remove('show');
+}
+function enviarRedactado(){
+  const para = document.getElementById('composePara').value.trim();
+  const asunto = document.getElementById('composeAsunto').value.trim();
+  if(!para || !asunto){ toast('Completá destinatario y asunto'); return; }
+  EMAILS.unshift({
+    id: Math.max(...EMAILS.map(e=>e.id))+1,
+    folder:'enviados', de:USUARIO.nombre, deMail:USUARIO.email, para,
+    asunto, fecha:'2026-08-11 16:40',
+    cuerpo: document.getElementById('composeCuerpo').value || '(sin contenido)',
+    leido:true, tag:'sistema', adjuntos:[]
+  });
+  cerrarRedactar();
+  toast(`Mensaje enviado a ${para}`);
+  if(carpetaActual==='enviados') renderLista();
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+document.getElementById('nombreUsuario').textContent = USUARIO.nombre;
+document.getElementById('avatarUsuario').textContent = USUARIO.iniciales;
+renderLista();
+</script>
+</body>
+</html>
